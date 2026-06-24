@@ -6,7 +6,6 @@
 // Create Date: 24/06/2026 09:05:50 PM
 // Module Name: sync_fifo
 // Description: Testbench for synchronous FIFO
-s
 // Revision:
 // Revision 0.01 - File Created
 // Additional Comments:
@@ -35,42 +34,78 @@ module sync_fifo_tb();
         clk = 0;
         forever #5 clk = ~clk;
     end
-    
+integer i;
     initial begin
-        rst = 1;
-        we = 0;
-        re = 0;
-        data_in = 0;
-        
-        #20;
-        rst = 0;
+    
 
-        // Write 4 values
+    rst = 1;
+    we = 0;
+    re = 0;
+    data_in = 0;
+
+    #20;
+    rst = 0;
+
+    // Check empty after reset
+    if(empty)
+        $display("PASS: FIFO is empty after reset");
+    else
+        $display("FAIL: FIFO should be empty after reset");
+
+    //-------------------------------------------------
+    // Fill FIFO completely
+    //-------------------------------------------------
+    we = 1;
+    re = 0;
+
+    for(i=0; i<8; i=i+1) begin
         @(posedge clk);
-        we = 1; data_in = 8'h11;
-
-        @(posedge clk);
-        data_in = 8'h22;
-
-        @(posedge clk);
-        data_in = 8'h33;
-
-        @(posedge clk);
-        data_in = 8'h44;
-
-        @(posedge clk);
-        we = 0;
-
-        // Read 4 values
-        @(posedge clk);
-        re = 1;
-
-        repeat(4)
-            @(posedge clk);
-
-        re = 0;
-
-        #20;
-        $finish;
+        data_in = i + 8'h10;
     end
+
+    @(posedge clk);
+    we = 0;
+
+    if(full)
+        $display("PASS: FIFO full asserted");
+    else
+        $display("FAIL: FIFO full not asserted");
+
+    //-------------------------------------------------
+    // Attempt overflow
+    //-------------------------------------------------
+    @(posedge clk);
+    we = 1;
+    data_in = 8'hFF;
+
+    @(posedge clk);
+    we = 0;
+
+    //-------------------------------------------------
+    // Empty FIFO completely
+    //-------------------------------------------------
+    re = 1;
+
+    for(i=0; i<8; i=i+1)
+        @(posedge clk);
+
+    re = 0;
+
+    if(empty)
+        $display("PASS: FIFO empty asserted");
+    else
+        $display("FAIL: FIFO empty not asserted");
+
+    //-------------------------------------------------
+    // Attempt underflow
+    //-------------------------------------------------
+    @(posedge clk);
+    re = 1;
+
+    @(posedge clk);
+    re = 0;
+
+    #20;
+    $finish;
+end
 endmodule
