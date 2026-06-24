@@ -6,7 +6,6 @@
 // Create Date: 24/06/2026 09:05:50 PM
 // Module Name: sync_fifo
 // Description: Designing a basic synchronous FIFO
-s
 // Revision:
 // Revision 0.01 - File Created
 // Additional Comments:
@@ -29,8 +28,7 @@ module sync_fifo
     );
     
     reg [data_width-1:0] data_out;
-    reg[$clog2(depth):0] wptr;
-    reg[$clog2(depth)-1:0] rptr;
+    reg[$clog2(depth):0] wptr,rptr;
     reg [data_width-1:0] mem [0:depth-1];
     integer i;
     
@@ -48,13 +46,15 @@ module sync_fifo
                 wptr <= wptr+1;
             end
             if(re && !empty) begin
-                data_out <= mem[rptr];
+                data_out <= mem[rptr[$clog2(depth)-1:0]];
                 rptr <= rptr+1;
             end
         end
     end
     
     assign empty = wptr == rptr;
-    assign full = (wptr[$clog2(depth)-1:0] == rptr) && wptr[$clog2(depth)];
+   assign full =
+       (wptr[$clog2(depth)-1:0] == rptr[$clog2(depth)-1:0]) &&
+       (wptr[$clog2(depth)] != rptr[$clog2(depth)]);
     
 endmodule
