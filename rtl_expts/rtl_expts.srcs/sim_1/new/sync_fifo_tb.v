@@ -51,7 +51,33 @@ integer i;
         $display("PASS: FIFO is empty after reset");
     else
         $display("FAIL: FIFO should be empty after reset");
-
+        
+    //-------------------------------------------------
+    // Single entry test 
+    //-------------------------------------------------
+            $display("\n----- Single Entry Test -----");
+        
+        @(posedge clk);
+        we = 1;
+        data_in = 8'h55;
+        
+        @(posedge clk);
+        we = 0;
+        
+        if(!empty)
+            $display("PASS: FIFO not empty after one write");
+        
+        @(posedge clk);
+        re = 1;
+        
+        @(posedge clk);
+        re = 0;
+        
+        #1;
+        
+        if(empty)
+            $display("PASS: FIFO empty after one read");
+            
     //-------------------------------------------------
     // Fill FIFO completely
     //-------------------------------------------------
@@ -80,16 +106,29 @@ integer i;
 
     @(posedge clk);
     we = 0;
-
+if(full)
+    $display("PASS: Overflow prevented");
+else
+    $display("FAIL: Overflow protection failed");
     //-------------------------------------------------
     // Empty FIFO completely
     //-------------------------------------------------
     re = 1;
 
-    for(i=0; i<8; i=i+1)
-        @(posedge clk);
+for(i=0; i<8; i=i+1) begin
+    @(posedge clk);
+   // #1;
+
+    if(data_out == (8'h10 + i))
+        $display("PASS: Data matched %h", data_out);
+    else
+        $display("FAIL: Expected %h Got %h",
+                 (8'h10+i), data_out);
+end
 
     re = 0;
+    // Allow flag update
+@(posedge clk);
 
     if(empty)
         $display("PASS: FIFO empty asserted");
@@ -104,7 +143,10 @@ integer i;
 
     @(posedge clk);
     re = 0;
-
+if(empty)
+    $display("PASS: Underflow prevented");
+else
+    $display("FAIL: Underflow protection failed");
     #20;
     $finish;
 end
