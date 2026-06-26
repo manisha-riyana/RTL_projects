@@ -158,6 +158,50 @@ if(empty)
 else
     $display("FAIL: Underflow protection failed");
     #20;
+    
+    //-------------------------------------------------
+// Simultaneous Read/Write Test
+//-------------------------------------------------
+$display("\n----- Simultaneous Read/Write Test -----");
+
+
+
+// Write process
+begin
+    for(i=0; i<16; i=i+1) begin
+        @(posedge wclk);
+        if(!full) begin
+        we = 1;
+        data_in = i;
+        $display("WRITE %h", data_in);
+        end
+        else
+            we = 0;
+    end
+    we = 0;
+end
+
+// Read process
+begin
+    repeat(2) @(posedge rclk);   // Optional delay so FIFO has some data
+
+    for(i=0; i<16; i=i+1) begin
+        @(posedge rclk);
+        if(!empty) begin
+            re = 1;
+            #1;
+            $display("[%0t] READ  %h", $time, data_out);
+        end
+        else
+            re = 0;
+    end
+    re = 0;
+    
+    @(posedge rclk);
+
+end
+
+
     $finish;
 end
 endmodule
