@@ -65,7 +65,7 @@ module async_fifo
         end
         else begin
             if(re && !empty) begin
-                data_out <= mem[rptr_bin];
+                data_out <= mem[rptr_bin[ADDR_WIDTH-1:0]];
                 rptr_bin <= rptr_bin+1;
             end
             else rptr_bin <= rptr_bin;
